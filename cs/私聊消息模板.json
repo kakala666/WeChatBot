@@ -1,0 +1,29 @@
+{
+  "self_id":640781795,
+  "user_id":2845998166,
+  "time":1724341152,
+  "message_id":1583590838,
+  "real_id":1583590838,
+  "message_seq":1583590838,
+  "message_type":"private",
+  "sender":{
+    "user_id":2845998166,
+    "nickname":"青挖",
+    "card":""
+  },
+  "raw_message":"我是",
+  "font":14,
+  "sub_type":"friend",
+  "message":[
+    {
+      "data":{
+        "text":"我是"
+      },
+      "type":"text"
+    }
+  ],
+  "message_format":"array",
+  "post_type":"message"
+}
+
+
