@@ -57,7 +57,7 @@ class setting(QFrame):
         self.ui = Ui_setting()
         #初始化UI
         self.ui.setupUi(self)
-        self.ui.comboBox.addItems(["kimi","douBao","tongYi","deepseek"])
+        self.ui.comboBox.addItems(["kimi","douBao","tongYi","ChatGpt","deepseek"])
         self.ui.kimi_api_key.setClearButtonEnabled(True)
         self.ui.DouBao_bot_id.setClearButtonEnabled(True)
         self.ui.DouBao_api_key.setClearButtonEnabled(True)

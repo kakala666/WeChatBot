@@ -41,6 +41,8 @@ class chat:
         file_object = client.files.create(file=Path(filepath), purpose="file-extract")
         file_content = client.files.content(file_id=file_object.id).text
         return file_content
+    def del_history(self):
+        pass
     def set_bot(self, bot_type, value:Union[float,int]):
         if bot_type == "temperature":
             self.temperature = value

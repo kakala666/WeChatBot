@@ -32,6 +32,13 @@ class BotApi():
         self.__botIsRun = False
         self.AItype = cof["Bot"]
         self.AIchat = None
+        self.AItypePool = {
+            "kimi": kimi.chat,
+            "douBao": douBao.chat,
+            "tongYi": tongYi.chat,
+            "ChatGPT": ChatGPT.Chat,
+            "deepseek": deepseek.chat
+        }
 
     def mag_type(self,msg):
         '''
@@ -337,97 +344,41 @@ class BotApi():
                 print(f"图片已下载到：{save_path}")
             else:
                 print("图片下载失败")
+        def msg_type_is_what(msg):
+            if msg['post_type'] == "notice":
+                if msg['notice_type'] == "friend_recall":
+                    return "friend_recall"
+            if msg['post_type'] == "message":
+                if msg['message_type'] == "private":
+                    if msg.get("message")[0].get("type") == 'image':
+                        return "private_img"
+                    elif msg.get("message")[0].get("type") == 'record':
+                        return "private_record"
+                    if self.msg_is_command(msg.get("message")[0].get("data").get("text")):
+                        return "private_command"
+                    return "private_msg"
+                elif msg['message_type'] == "group":
+                    return "group_msg"
 
         msg = json.loads(message)
 
-        # 如果接收到的是私聊消息
-        if self.bot_is_run() == False:
+        if self.bot_is_run() == False: #如果机器人停止运行
             return
-        if msg.get("post_type") == "message" and msg.get("message_type") == 'private':
-            self.user_id = msg.get("user_id")
-            if self.user_id not in QQcof["Private"]:
-                return
-            #MySignal.getPrivateMessage.message_received.emit(msg.get("message")[0].get("data").get("text"))
-
-            if msg.get("message")[0].get('type') != 'image' and msg.get("message")[0].get('type') != 'record':
-                if self.msg_is_command(msg.get("message")[0].get("data").get("text")):
-                    reText = self.run_command(msg.get("message")[0].get("data").get("text"),user_id=msg.get("user_id"))
-                    asyncio.create_task(self.send_private_msg(message=reText, user_id=msg.get("user_id")))
-                    return
-            # 构建AI消息结构
+        msg_type = msg_type_is_what(msg)
+        if msg_type == "private_msg":
             print("开始构建AI消息结构")
             sendMsg = {}
             sendMsg["sub_type"] = "private"
             sendMsg["user_id"] = msg.get("user_id")
             sendMsg["user_name"] = msg.get("sender").get("nickname")
-            if msg.get("message")[0].get('type') == 'image':
-                print("接到图片消息")
-                download_image(image_url=msg.get('message')[0].get('data').get('url'),save_path='./Temp/1.png')
-                sendMsg['image'] = msg.get('message')[0].get('data').get('image')
-            if msg.get("message")[0].get('type') == 'record':
-                self.fast_send_private_msg("抱歉我暂时不能听语音",msg.get("user_id"))
-                return
-            else:
-                sendMsg["message"] = msg.get("raw_message")
-
-            try:
-                if self.AIchat:
-                    if self.user_id in AIPool:
-                        if 'image' in sendMsg:
-                            self.fast_send_private_msg("网络堵塞，图片发送缓慢",msg.get("user_id"))
-                            time.sleep(0.5)
-                            imgae_text = OCR.OCR(Path("./Temp/1.png").resolve())
-                            sendMsg['image'] = imgae_text
-                    sendMsg = json.dumps(sendMsg, ensure_ascii=False)
-                    print(f'消息构建完成{sendMsg}')
-
-                    reText = self.AIchat.chat(sendMsg)
-                    #print(reText)
-                    asyncio.create_task(self.send_private_msg(message=reText, user_id=msg.get("user_id")))
-                else:
-                    if self.AItype == "kimi":
-                        AIPool[msg.get("user_id")] = kimi.chat()
-                        self.AIchat = AIPool.get(msg.get("user_id"))
-
-                    elif self.AItype == "douBao":
-                        AIPool[msg.get("user_id")] = douBao.chat()
-                        self.AIchat = AIPool.get(msg.get("user_id"))
-
-                    elif self.AItype == "tongYi":
-                        AIPool[msg.get("user_id")] = tongYi.chat()
-                        self.AIchat = AIPool.get(msg.get("user_id"))
-
-                    elif self.AItype == 'ChatGpt':
-                        AIPool[msg.get("user_id")] = ChatGPT.Chat()
-                        self.AIchat = AIPool.get(msg.get("user_id"))
-                    elif self.AItype == 'deepseek':
-                        AIPool[msg.get("user_id")] = deepseek.chat()
-                        self.AIchat = AIPool.get(msg.get("user_id"))
-                    else:
-                        asyncio.create_task(self.send_private_msg(message="Bot配置错误", user_id=msg.get("user_id")))
-                        return
-
-                    if self.user_id in AIPool:
-                        if 'image' in sendMsg:
-                            self.fast_send_private_msg("网络堵塞，图片发送缓慢",msg.get("user_id"))
-                            imgae_text = OCR.OCR(Path("./Temp/1.png").resolve())
-                            # imgae_text = AIPool[self.user_id].init_file('./Temp/1.png')
-                            sendMsg['image'] = imgae_text
-
-                    sendMsg = json.dumps(sendMsg, ensure_ascii=False)
-                    print(f'消息构建完成{sendMsg}')
-
-                    reText = AIPool[msg.get("user_id")].chat(sendMsg)
-                    #print(reText)
-                    asyncio.create_task(self.send_private_msg(message=reText, user_id=msg.get("user_id")))
-
-
-            except RateLimitError as e:
-                asyncio.create_task(self.send_private_msg(message="发的太快啦，休息一会吧", user_id=msg.get("user_id")))
-                print("速率限制，请稍后再试")
-
-        # 如果接收到的是群消息
-        elif msg.get("post_type") == "message" and msg.get("message_type") == 'group':
+            sendMsg["message"] = msg.get("raw_message")
+            sendMsg = json.dumps(sendMsg, ensure_ascii=False)
+            print(f'消息构建完成{sendMsg}')
+            if self.AIchat == None:
+                self.AIchat = self.AItypePool.get(self.AItype)()
+            reText = self.AIchat.chat(sendMsg)
+            self.fast_send_private_msg(reText, msg.get("user_id"))
+        elif msg_type == "group_msg":
             # 如果group_id不在QQcof[gtoup]中，终止操作
             if msg.get("group_id") not in QQcof["Group"]:
                 return
@@ -477,6 +428,24 @@ class BotApi():
                 print("速率限制，请稍后再试")
             except Exception as e:
                 asyncio.create_task(self.send_private_msg(message="出现未知错误", user_id=msg.get("group_id")))
+        elif msg_type == "friend_recall":
+            pass
+        elif msg_type == "private_img":
+            print("开始构建AI消息结构(图片)")
+            sendMsg = {}
+            sendMsg["sub_type"] = "private"
+            sendMsg["user_id"] = msg.get("user_id")
+            sendMsg["user_name"] = msg.get("sender").get("nickname")
+            download_image(image_url=msg.get('message')[0].get('data').get('url'), save_path='./Temp/1.png')
+            imgae_text = OCR.OCR(Path("./Temp/1.png").resolve())
+            sendMsg['image'] = imgae_text
+            sendMsg = json.dumps(sendMsg, ensure_ascii=False)
+            print(f'消息构建完成{sendMsg}')
+            if self.AIchat == None:
+                self.AIchat = self.AItypePool.get(self.AItype)()
+            reText = self.AIchat.chat(sendMsg)
+            self.fast_send_private_msg(reText, msg.get("user_id"))
+
 
     async def listen_to_server(self,port):
         uri = f"ws://localhost:{port}"
