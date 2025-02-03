@@ -1,22 +1,20 @@
-from qfluentwidgets import NavigationItemPosition, FluentWindow, SubtitleLabel, setFont,Slider
+from qfluentwidgets import NavigationItemPosition, FluentWindow, SubtitleLabel, setFont
 from qfluentwidgets import FluentIcon as FIF
-from PySide6.QtWidgets import QFrame,QApplication,QHBoxLayout,QFileDialog,QMessageBox,QVBoxLayout,QCompleter,QLabel
+from PySide6.QtWidgets import QHBoxLayout,QMessageBox,QCompleter
 from PySide6.QtCore import Qt,Signal
-from PySide6.QtGui import QIcon
 from UI.setting import Ui_setting
 from UI.Home import Ui_Home
-from UI.optionFriend import Ui_optionFriend
 from UI.BotCofing import Ui_BotCofing
 from UI.Chat import Ui_Chat
 from UI.setQQBot import Ui_setQQBot
-import sys,time
+import sys
 import json
 import re
-from qfluentwidgets import TogglePushButton,PushButton,MessageBoxBase,ListWidget,CheckBox,SearchLineEdit,LineEdit
+from qfluentwidgets import PushButton,MessageBoxBase,ListWidget,CheckBox,SearchLineEdit,LineEdit
 import WeChatApi
 from moudle.Exception import HttpError
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton,QListWidgetItem,QLabel,QButtonGroup
-from PySide6.QtGui import QAction,QFont
+from PySide6.QtWidgets import QApplication, QWidget,QListWidgetItem,QLabel,QButtonGroup
+from PySide6.QtGui import QFont
 import threading
 import web
 from functools import partial
@@ -57,7 +55,7 @@ class setting(QFrame):
         self.ui = Ui_setting()
         #初始化UI
         self.ui.setupUi(self)
-        self.ui.comboBox.addItems(["kimi","douBao","tongYi","deepseek"])
+        self.ui.comboBox.addItems(["kimi","douBao","tongYi","ChatGpt","deepseek"])
         self.ui.kimi_api_key.setClearButtonEnabled(True)
         self.ui.DouBao_bot_id.setClearButtonEnabled(True)
         self.ui.DouBao_api_key.setClearButtonEnabled(True)
@@ -184,7 +182,7 @@ class setQQBot(QFrame):
         self.buttonGroup.addButton(self.ui.onlyPrivate,2)
         self.buttonGroup.addButton(self.ui.All,3)
 
-        self.friendNameList, self.friendUserIdList = asyncio.run(self.QQBot.get_friend_list(update=True)) #获取好友列表
+        self.friendNameList, self.friendUserIdList = asyncio.run(self.QQBot.get_friend_list()) #获取好友列表
         # 默认选择只接收私聊消息
         self.ui.onlyPrivate.setChecked(True)
         self.ui.option.clicked.connect(partial(self.optionFriend, "Private", self.friendNameList))
@@ -328,10 +326,12 @@ class Home(QFrame):
         # 初始化UI
         self.ui.setupUi(self)
         try:
-            friendDataList = WeChatApi.search_friend()
-            friendUserNameList = [item["NickName"] for item in friendDataList]  # 使用列表推导式提取所有用户名
-            friendNameList = [item["Remark"] for item in friendDataList]  # 使用列表推导式提取所有备注名
-            friendUserNameList.extend([item["Remark"] for item in friendDataList])  # 合并两种用户名
+            pass
+            #禁用启动微信机器人
+            #friendDataList = WeChatApi.search_friend()
+            #friendUserNameList = [item["NickName"] for item in friendDataList]  # 使用列表推导式提取所有用户名
+            #friendNameList = [item["Remark"] for item in friendDataList]  # 使用列表推导式提取所有备注名
+            #friendUserNameList.extend([item["Remark"] for item in friendDataList])  # 合并两种用户名
         except HttpError as e:
             friendUserNameList = []
             #禁用启动微信机器人按钮
@@ -364,11 +364,11 @@ class Home(QFrame):
             self.pushButton = PushButton("刷新状态")
             self.ui.verticalLayout.addWidget(self.pushButton)
             self.pushButton.clicked.connect(self.refresh_bot_status)
-        self.completer = QCompleter(friendUserNameList, self)
-        self.completer.setCaseSensitivity(Qt.CaseInsensitive)  # 不区分大小写
-        self.completer.setCompletionMode(QCompleter.PopupCompletion)  # 下拉列表补全模式
-        self.ui.lineEdit.setCompleter(self.completer)  # 设置补全器
-        self.ui.optionFriend.clicked.connect(partial(self.optionFriend, friendUserNameList))
+        #self.completer = QCompleter(friendUserNameList, self)
+        #self.completer.setCaseSensitivity(Qt.CaseInsensitive)  # 不区分大小写
+        #self.completer.setCompletionMode(QCompleter.PopupCompletion)  # 下拉列表补全模式
+        #self.ui.lineEdit.setCompleter(self.completer)  # 设置补全器
+        #self.ui.optionFriend.clicked.connect(partial(self.optionFriend, friendUserNameList))
         self.ui.runWeChatBot.clicked.connect(self.runWeChatBot)
         self.ui.runQQBot.clicked.connect(self.runQQBot)
 
@@ -450,6 +450,7 @@ class Window(FluentWindow):
     #初始化
     def __init__(self):
         super().__init__()
+        print("啊")
         #self.init_2()
         # 创建子界面
         self.homeInterface = Home()
