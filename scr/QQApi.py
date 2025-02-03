@@ -27,6 +27,8 @@ AIPool = {}
 
 class BotApi():
     def __init__(self):
+        self.__update_cache("ALLFRIENDDATA")
+        self.__update_cache("ALLGROUPDATA")
         self.friendData = asyncio.run(self.get_friend_list())
         self.groupData = asyncio.run(self.get_group_list())
         self.__botIsRun = False
@@ -39,6 +41,7 @@ class BotApi():
             "ChatGPT": ChatGPT.Chat,
             "deepseek": deepseek.chat
         }
+        self.history = {}
 
     def mag_type(self,msg):
         '''
@@ -169,7 +172,13 @@ class BotApi():
         print(json.dumps(msg, ensure_ascii=False))
         print(requests.post(url=URL, data=msg).text)
 
-    def __update_cache(self,type, data):
+    def __update_cache(self,type, data=None):
+        if data is None:
+            if type == "ALLFRIENDDATA":
+                data = requests.get(url + "get_friend_list").json().get("data")
+            elif type == "ALLGROUPDATA":
+                data = requests.get(url + "get_group_list").json().get("data")
+            print(data)
         with open('../QQfriend.json', encoding="utf-8") as f:
             cof = json.load(f)
             cof[type] = data
@@ -177,9 +186,8 @@ class BotApi():
             json.dump(cof, f, indent=4, sort_keys=True, ensure_ascii=False)
         print("QQ好友数据缓存已更新")
 
-    def fast_get_friend_list(self,updata:bool=False):
-        return asyncio.run((self.get_friend_list(updata)))
-
+    def Search_history(self,msg_id):
+        return self.history.get(str(msg_id),default=None)["message"]
     async def get_friend_list(self,update:bool=False):
 
         if self.isStart():
@@ -364,6 +372,7 @@ class BotApi():
 
         if self.bot_is_run() == False: #如果机器人停止运行
             return
+
         msg_type = msg_type_is_what(msg)
         if msg_type == "private_msg":
             print("开始构建AI消息结构")
@@ -374,6 +383,7 @@ class BotApi():
             sendMsg["message"] = msg.get("raw_message")
             sendMsg = json.dumps(sendMsg, ensure_ascii=False)
             print(f'消息构建完成{sendMsg}')
+            self.history[str(msg.get("message_id"))] = sendMsg
             if self.AIchat == None:
                 self.AIchat = self.AItypePool.get(self.AItype)()
             reText = self.AIchat.chat(sendMsg)
@@ -429,7 +439,8 @@ class BotApi():
             except Exception as e:
                 asyncio.create_task(self.send_private_msg(message="出现未知错误", user_id=msg.get("group_id")))
         elif msg_type == "friend_recall":
-            pass
+            #history = self.AIchat.get_history()
+            self.AIchat.del_history(self.Search_history(msg.get("message_id")))
         elif msg_type == "private_img":
             print("开始构建AI消息结构(图片)")
             sendMsg = {}
