@@ -29,8 +29,6 @@ class BotApi():
     def __init__(self):
         self.__update_cache("ALLFRIENDDATA")
         self.__update_cache("ALLGROUPDATA")
-        self.friendData = asyncio.run(self.get_friend_list())
-        self.groupData = asyncio.run(self.get_group_list())
         self.__botIsRun = False
         self.AItype = cof["Bot"]
         self.AIchat = None
@@ -112,8 +110,10 @@ class BotApi():
         :param data: 用户名或QQ号
         :return:
         '''
-        Name_to_ID = dict(zip(self.friendData[0], self.friendData[1]))
-        ID_to_Name = dict(zip(self.friendData[1], self.friendData[0]))
+        friendData = asyncio.run(self.get_friend_list())
+
+        Name_to_ID = dict(zip(friendData[0], friendData[1]))
+        ID_to_Name = dict(zip(friendData[1], friendData[0]))
         if isinstance(data, int):
             return ID_to_Name.get(data)
         elif isinstance(data, str):
@@ -128,8 +128,10 @@ class BotApi():
         :param data: 群名或群ID
         :return:
         '''
-        Name_to_ID = dict(zip(self.friendData[0], self.friendData[1]))
-        ID_to_Name = dict(zip(self.friendData[1], self.friendData[0]))
+        friendData = asyncio.run(self.get_friend_list())
+
+        Name_to_ID = dict(zip(friendData[0], friendData[1]))
+        ID_to_Name = dict(zip(friendData[1], friendData[0]))
         if isinstance(data, int):
             return ID_to_Name.get(data)
         elif isinstance(data, str):

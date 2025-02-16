@@ -182,7 +182,7 @@ class setQQBot(QFrame):
         self.buttonGroup.addButton(self.ui.onlyPrivate,2)
         self.buttonGroup.addButton(self.ui.All,3)
 
-        self.friendNameList, self.friendUserIdList = asyncio.run(self.QQBot.get_friend_list()) #获取好友列表
+        self.friendNameList, self.friendUserIdList = asyncio.run(self.QQBot.get_friend_list(update=False)) #获取好友列表
         # 默认选择只接收私聊消息
         self.ui.onlyPrivate.setChecked(True)
         self.ui.option.clicked.connect(partial(self.optionFriend, "Private", self.friendNameList))
@@ -249,9 +249,9 @@ class setQQBot(QFrame):
         w = optionFriend(parent=self,stands=friendList,Type=Type)
         w.show()
 
-class optionFriend(MessageBoxBase):
+class optionFriend(MessageBoxBase,QFrame):
     def __init__(self,Type, stands,parent=None):
-        self.BotApi = QQApi.BotApi()
+        self.BotApi = self.QQBot
         self.FriendList = []
         self.GroupList = []
         with open("../QQfriend.json", encoding="utf-8") as f:
@@ -426,13 +426,13 @@ class BotCofing(QFrame):
         self.ui.save.clicked.connect(self.__save_user_seting)
 
     def __get_user_seting(self):
-        user_set = QQApi.BotApi().get_user_setting()
+        user_set = self.QQBot.get_user_setting()
         return user_set
     def __save_user_seting(self):
         user_set_list = []
         for i in range(10):
             user_set_list.append(self.ui.BotCofingList.itemWidget(self.ui.BotCofingList.item(i)).text())
-        QQApi.BotApi().save_user_setting(user_set_list)
+        self.QQBot.save_user_setting(user_set_list)
 
 class Chat(QFrame):
     def __init__(self,parent=None):
@@ -450,7 +450,7 @@ class Window(FluentWindow):
     #初始化
     def __init__(self):
         super().__init__()
-        print("啊")
+
         #self.init_2()
         # 创建子界面
         self.homeInterface = Home()
