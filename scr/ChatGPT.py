@@ -3,10 +3,11 @@ import kimi
 import json
 from typing import Union
 from pathlib import Path
-with open('../config.json', encoding="utf-8") as f:
-  cof = json.load(f)
+
 class Chat(kimi.chat):
   def __init__(self,temperature=0.3,top_p=0.9,presence_penalty=0.5,max_tokens=1000):
+    with open('../config.json', encoding="utf-8") as f:
+      cof = json.load(f)
     # 判断temperature是否在范围内
     self.temperature = 0.99 if temperature < 0 or temperature >= 2 else temperature
     # 判断top_p是否在范围内

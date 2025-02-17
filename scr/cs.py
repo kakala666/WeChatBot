@@ -25,10 +25,7 @@ import asyncio
 FriendList = []
 GroupList = []
 
-with open("../QQfriend.json",encoding="utf-8") as f:
-    cof = json.load(f)
-    FriendList = cof["Private"]
-    GroupList = cof["Group"]
+
 
 class QFrame(QWidget):
     QQBot = QQApi.BotApi()
