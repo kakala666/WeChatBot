@@ -13,7 +13,7 @@ from openai import RateLimitError
 from typing import Union
 import image_Recognition.BaiDu as OCR
 from fuzzywuzzy import process #模糊匹配
-
+import aiohttp #异步请求
 from scr.image_Recognition.BaiDu import _OCR_image
 from pathlib import Path
 headers = {'Content-Type': 'application/json'}
@@ -193,17 +193,20 @@ class BotApi():
     async def get_friend_list(self,update:bool=False):
 
         if self.isStart():
-            data = requests.get(url + "get_friend_list").json().get("data")
+
+            async with aiohttp.ClientSession() as session:  # 使用 aiohttp 创建异步会话
+                async with session.get(url + "get_friend_list") as response:
+                    data = await response.json()  # 异步获取 JSON 数据
+                    data = data.get("data", [])
+
             friendNameList = []
             friendUserIdList = []
-            for i in data:
-                if i.get("remark"):
-                    friendNameList.append(i["remark"])
-                else:
-                    friendNameList.append(i["nickname"])
-                friendUserIdList.append(i["user_id"])
+            for item in data:
+                friendNameList.append(item.get("remark") or item["nickname"])
+                friendUserIdList.append(item["user_id"])
             if update:
                 self.__update_cache("ALLFRIENDDATA", data)
+
             return friendNameList, friendUserIdList
         else:
             with open('../QQfriend.json', encoding="utf-8") as f:
@@ -213,6 +216,7 @@ class BotApi():
             for i in QQcof:
                 friendNameList.append(i["nickname"])
                 friendUserIdList.append(i["user_id"])
+
             return friendNameList, friendUserIdList
 
     def fast_get_group_list(self):
