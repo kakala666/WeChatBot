@@ -26,20 +26,22 @@ AIPool = {}
 
 
 class BotApi():
-    def __init__(self):
-        self.__update_cache("ALLFRIENDDATA")
-        self.__update_cache("ALLGROUPDATA")
+    def __init__(self,start_type = "normal"):
+        if start_type != "init":
+            self.__update_cache("ALLFRIENDDATA")
+            self.__update_cache("ALLGROUPDATA")
         self.__botIsRun = False
         self.AItype = cof["Bot"]
         self.AIchat = None
         self.AItypePool = {
-            "kimi": kimi.chat,
-            "douBao": douBao.chat,
-            "tongYi": tongYi.chat,
-            "ChatGPT": ChatGPT.Chat,
-            "deepseek": deepseek.chat
+        "kimi": kimi.chat,
+        "douBao": douBao.chat,
+        "tongYi": tongYi.chat,
+        "ChatGPT": ChatGPT.Chat,
+        "deepseek": deepseek.chat
         }
         self.history = {}
+
 
     def mag_type(self,msg):
         '''
