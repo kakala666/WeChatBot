@@ -1,3 +1,6 @@
+import time
+from turtledemo.penrose import start
+
 from qfluentwidgets import NavigationItemPosition, FluentWindow, SubtitleLabel, setFont
 from qfluentwidgets import FluentIcon as FIF
 from PySide6.QtWidgets import QHBoxLayout,QMessageBox,QCompleter
@@ -28,7 +31,7 @@ GroupList = []
 
 
 class QFrame(QWidget):
-    QQBot = QQApi.BotApi()
+    QQBot = QQApi.BotApi(start_type="init")
 
 class Widget(QFrame):
     '''这个类不重要，不需要看，无用，但别删'''
@@ -170,6 +173,7 @@ class setting(QFrame):
 
 class setQQBot(QFrame):
     def __init__(self):
+        start_time = time.time()
         super().__init__()
         self.ui = Ui_setQQBot()
         self.ui.setupUi(self)
@@ -178,8 +182,9 @@ class setQQBot(QFrame):
         self.buttonGroup.addButton(self.ui.onlyGroup,1)
         self.buttonGroup.addButton(self.ui.onlyPrivate,2)
         self.buttonGroup.addButton(self.ui.All,3)
-
+        button_end_time = time.time()
         self.friendNameList, self.friendUserIdList = asyncio.run(self.QQBot.get_friend_list(update=False)) #获取好友列表
+        get_friend_end_time = time.time()
         # 默认选择只接收私聊消息
         self.ui.onlyPrivate.setChecked(True)
         self.ui.option.clicked.connect(partial(self.optionFriend, "Private", self.friendNameList))
@@ -322,13 +327,13 @@ class Home(QFrame):
         self.ui = Ui_Home()
         # 初始化UI
         self.ui.setupUi(self)
+
+
         try:
-            pass
-            #禁用启动微信机器人
-            #friendDataList = WeChatApi.search_friend()
-            #friendUserNameList = [item["NickName"] for item in friendDataList]  # 使用列表推导式提取所有用户名
-            #friendNameList = [item["Remark"] for item in friendDataList]  # 使用列表推导式提取所有备注名
-            #friendUserNameList.extend([item["Remark"] for item in friendDataList])  # 合并两种用户名
+            friendDataList = WeChatApi.search_friend()
+            friendUserNameList = [item["NickName"] for item in friendDataList]  # 使用列表推导式提取所有用户名
+            friendNameList = [item["Remark"] for item in friendDataList]  # 使用列表推导式提取所有备注名
+            friendUserNameList.extend([item["Remark"] for item in friendDataList])  # 合并两种用户名
         except HttpError as e:
             friendUserNameList = []
             #禁用启动微信机器人按钮
@@ -368,7 +373,6 @@ class Home(QFrame):
         #self.ui.optionFriend.clicked.connect(partial(self.optionFriend, friendUserNameList))
         self.ui.runWeChatBot.clicked.connect(self.runWeChatBot)
         self.ui.runQQBot.clicked.connect(self.runQQBot)
-
     def refresh_bot_status(self):
         print("尝试刷新状态")
         if self.QQBot.isStart():
@@ -446,22 +450,35 @@ class Chat(QFrame):
 class Window(FluentWindow):
     #初始化
     def __init__(self):
+        start_time = time.time()
         super().__init__()
 
         #self.init_2()
         # 创建子界面
         self.homeInterface = Home()
+        homeInterface_end_time = time.time()
+        print(f'Home类初始化耗时：{homeInterface_end_time-start_time}')
         self.BotCofing = BotCofing()
+        BotCofing_end_time = time.time()
+        print(f'BotCofing类初始化耗时：{BotCofing_end_time-homeInterface_end_time}')
         self.chat = Chat()
+        chat_end_time = time.time()
+        print(f'Chat类初始化耗时：{chat_end_time-BotCofing_end_time}')
         self.settingInterface = setting()
+        settingInterface_end_time = time.time()
+        print(f'setting类初始化耗时：{settingInterface_end_time-chat_end_time}')
         self.setQQBot = setQQBot()
+        setQQBot_end_time = time.time()
+        print(f'setQQBot类初始化耗时：{setQQBot_end_time-settingInterface_end_time}')
         '''
         self.albumInterface = Widget('Album Interface', self)
         self.albumInterface1 = Widget('Album Interface 1', self)
         '''
         self.initNavigation()
-        self.initWindow()
 
+        self.initWindow()
+        end_time=time.time()
+        print(f'Window类初始化耗时：{end_time-start_time}')
     #次初始化
     def init_2(self):
         friends = WeChatApi.search_friend()
