@@ -14,7 +14,7 @@ def search_friend():
             "sql": "SELECT UserName,Remark,NickName,PYInitial,RemarkPYInitial,t2.smallHeadImgUrl FROM Contact t1 LEFT JOIN ContactHeadImgUrl t2 ON t1.UserName = t2.usrName WHERE t1.VerifyFlag = 0 AND (t1.Type = 3 OR t1.Type > 50) and t1.Type != 2050 AND t1.UserName NOT IN ('qmessage', 'tmessage') ORDER BY t1.Remark DESC;"
             }
     try:
-        re = requests.post(url=url,json=data).json()["data"]["data"]
+        re = requests.post(url=url,json=data,timeout=0.1).json()["data"]["data"]
     except HTTPError as http_err:
         print(f'HTTP错误: {http_err}')  # HTTP错误
         raise HttpError("HTTP错误")
@@ -34,3 +34,5 @@ def search_friend():
         raise HttpError(e)
     else:
         return re
+
+
